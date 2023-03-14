@@ -70,6 +70,7 @@ validateThemeConfig ::
   Either String (ThemeInstance theme)
 validateThemeConfig = validateThemeInstance . M.map SomeColor . getThemeConfig
 
+evalConfig :: RawThemeConfig -> Either String ThemeConfig
 evalConfig rawConfig =
   fmap ThemeConfig'
     . traverse (dereferenceColorValue rawConfig)
@@ -77,6 +78,7 @@ evalConfig rawConfig =
     . getRawThemeConfig
     $ rawConfig
 
+loadRuntimeTheme :: FilePath -> IO ThemeConfig
 loadRuntimeTheme p = do
   contents <- BS.readFile p
   case eitherDecode' contents >>= evalConfig of
@@ -90,6 +92,7 @@ testQuery p = do
       r = sampleQuery <$> validateThemeConfig @RuntimeTheme cfg
   print r
 
+dereferenceColorValue :: RawThemeConfig -> ColorValue (ColorReference RawThemeConfig) -> Either String (ColorValue Identity)
 dereferenceColorValue env colorValue =
   case colorValue of
     RGBValue r -> pure $ RGBValue r

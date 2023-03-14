@@ -11,17 +11,53 @@ source-repository head
 flag threaded
   default: False
 
-executable hello
-  hs-source-dirs: src
-  main-is: hello.hs
-  build-depends:
-    base >= 4.16 && < 5,
-    containers,
-    text,
-    mtl,
-    comonad,
-    bytestring,
-    aeson
+library
+    exposed-modules:  ColorTheme
+                    , ColorX11
+                    , Color
 
-  if flag(threaded)
-     ghc-options: -threaded
+    build-depends:
+        base >= 4.16 && < 5,
+        containers,
+        text,
+        mtl,
+        comonad,
+        bytestring,
+        aeson
+
+    hs-source-dirs:   src
+    default-language: Haskell2010
+
+executable hello
+    hs-source-dirs:
+      app
+
+    main-is: Main.hs
+
+    build-depends:
+        base >= 4.16 && < 5,
+        containers,
+        text,
+        hello,
+        mtl,
+        comonad,
+        bytestring,
+        aeson
+
+    if flag(threaded)
+        ghc-options: -threaded
+
+test-suite hello-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      Hello.Color.Tests
+      TestSuite.Util
+  hs-source-dirs:
+      test
+  build-depends:
+      base >=4.16 && <5
+    , hello
+    , tasty
+    , tasty-hunit
+  default-language: Haskell2010
