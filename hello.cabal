@@ -1,63 +1,49 @@
 cabal-version: 3.0
 
 name: hello
-version: 1.0.0.2
+version: 1.0.0.0
 
+common common-all
+    build-depends:
+        base >=4.16 && <5,
+        containers,
+        text,
+        mtl,
+        comonad,
+        bytestring,
+        aeson
 
-source-repository head
-  type:     darcs
-  location: http://darcs.haskell.org/hello/
-
-flag threaded
-  default: False
+    default-language: Haskell2010
+    ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
 
 library
+    import: common-all
     exposed-modules:  ColorTheme
                     , ColorX11
                     , Color
-
-    build-depends:
-        base >= 4.16 && < 5,
-        containers,
-        text,
-        mtl,
-        comonad,
-        bytestring,
-        aeson
-
     hs-source-dirs:   src
-    default-language: Haskell2010
 
 executable hello
-    hs-source-dirs:
-      app
-
+    import: common-all
     main-is: Main.hs
-
-    build-depends:
-        base >= 4.16 && < 5,
-        containers,
-        text,
-        hello,
-        mtl,
-        comonad,
-        bytestring,
-        aeson
-
-    if flag(threaded)
-        ghc-options: -threaded
+    hs-source-dirs: app, src
+    other-modules:
+        ColorTheme,
+        ColorX11,
+        Color
 
 test-suite hello-test
-  type: exitcode-stdio-1.0
-  main-is: Spec.hs
-  other-modules:
-      Hello.Color.Tests
-      TestSuite.Util
-  hs-source-dirs:
-      test
-  build-depends:
-      base >=4.16 && <5
-    , hello
-    , tasty
-    , tasty-hunit
-  default-language: Haskell2010
+    import: common-all
+    type: exitcode-stdio-1.0
+    main-is: Spec.hs
+    other-modules:
+        Hello.Color.Tests,
+        TestSuite.Util,
+        ColorTheme,
+        ColorX11,
+        Color
+    hs-source-dirs:
+        src, test
+    build-depends:
+        , tasty
+        , tasty-hunit
