@@ -13,10 +13,9 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module ColorTheme where
+module ColorTheme () where
 
 import Color
 import ColorX11
@@ -28,10 +27,8 @@ import Data.Aeson
 import qualified Data.ByteString.Lazy as BS
 import Data.Kind
 import qualified Data.Map as M
-import Data.Proxy
-import qualified Data.Text as Text
-import Data.Word
-import GHC.TypeLits
+-- import Dict
+import qualified Dict2
 import Text.Read
 
 newtype ColorReference r a = ColorReference {unColorReference :: ExceptT String (Reader r) a}
@@ -103,6 +100,10 @@ dereferenceColorValue env colorValue =
         OtherColor _ -> pure referencedColor
         _ -> pure $ OtherColor referencedColor
 
+evalColorReference ::
+  RawThemeConfig ->
+  ColorReference RawThemeConfig (ColorValue (ColorReference RawThemeConfig)) ->
+  Either String (ColorValue (ColorReference RawThemeConfig))
 evalColorReference env =
   flip runReader env . runExceptT . unColorReference
 

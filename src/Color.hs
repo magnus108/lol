@@ -20,7 +20,6 @@ import qualified Data.Map.Strict as Map
 import Data.Proxy
 import Data.Word (Word8)
 import GHC.TypeLits
-import Text.Printf
 
 infixr 6 :++:
 
@@ -96,6 +95,9 @@ instance IsColor RGB where
 
 data SomeColor = forall color. IsColor color => SomeColor color
 
+instance Eq SomeColor where
+  x == y = (toRGB x) == (toRGB y)
+
 instance Show SomeColor where
   show = show . toRGB
 
@@ -109,7 +111,7 @@ type Theme = [Symbol]
 
 newtype ThemeInstance (a :: Theme) = ThemeInstance
   {getThemeInstance :: Map.Map String SomeColor}
-  deriving (Show)
+  deriving (Show, Eq)
 
 class HasColor (color :: Symbol) (container :: Theme)
 
@@ -135,17 +137,17 @@ lookupColor (ThemeInstance colors) =
    in colors Map.! targetname
 
 colorDemo ::
-  ( HasColor "red" theme,
-    HasColor "green" theme,
-    HasColor "blue" theme
+  ( HasColor "Red" theme,
+    HasColor "Green" theme,
+    HasColor "Blue" theme
   ) =>
   ThemeInstance theme ->
-  String
+  (String, String, String)
 colorDemo theme =
-  let r = lookupColor @"red" theme
-      g = lookupColor @"green" theme
-      b = lookupColor @"blue" theme
-   in show (r, g, b)
+  let r = lookupColor @"Red" theme
+      g = lookupColor @"Green" theme
+      b = lookupColor @"Blue" theme
+   in (show r, show g, show b)
 
 data MkTheme theme where
   NewTheme :: MkTheme '[]

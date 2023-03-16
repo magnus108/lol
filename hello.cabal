@@ -20,6 +20,8 @@ library
     import: common-all
     exposed-modules:  ColorTheme
                     , ColorX11
+                    , Dict
+                    , Dict2
                     , Color
     hs-source-dirs:   src
 
@@ -30,6 +32,8 @@ executable hello
     other-modules:
         ColorTheme,
         ColorX11,
+        Dict,
+        Dict2,
         Color
 
 test-suite hello-test
@@ -41,6 +45,8 @@ test-suite hello-test
         TestSuite.Util,
         ColorTheme,
         ColorX11,
+        Dict,
+        Dict2,
         Color
     hs-source-dirs:
         src, test
