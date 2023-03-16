@@ -4,6 +4,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PolyKinds #-}
@@ -15,6 +16,7 @@
 
 module Dict2 where
 
+import qualified Data.Aeson as Aeson
 import Data.Kind
 import qualified Data.Map.Strict as Map
 import Data.Proxy
@@ -28,8 +30,8 @@ instance HasTranslation translation (translation ': translations)
 
 instance {-# OVERLAPPABLE #-} (HasTranslation translation translations) => HasTranslation translation (currentTranslation ': translations)
 
-data Translation = Translation {translation :: String}
-  deriving (Eq, Show)
+newtype Translation = Translation {translation :: String}
+  deriving (Eq, Show, Aeson.FromJSON)
 
 data TranslationTypeLevel (translation :: Symbol) = TranslationTypeLevel
 
@@ -117,10 +119,10 @@ newtype DictInstance (dict :: Dict) = DictInstance {getDictInstance :: Map.Map S
   deriving (Eq, Show)
 
 class ValidateDictInstance (dict :: Dict) (a :: Dict -> Type) where
-  validateDictInstance :: Map.Map String Translation -> Maybe (a dict)
+  validateDictInstance :: Map.Map String Translation -> Either String (a dict)
 
 instance ValidateDictInstance '[] DictInstance where
-  validateDictInstance dict = Just (DictInstance dict)
+  validateDictInstance dict = Right (DictInstance dict)
 
 instance
   ( KnownSymbol currentTranslation,
@@ -130,11 +132,15 @@ instance
   where
   validateDictInstance dict = do
     let targetTranslation = symbolVal $ Proxy @currentTranslation
-    Map.lookup targetTranslation dict
-    (DictInstance m) <- validateDictInstance @rest dict
-    pure $ DictInstance m
+     in case Map.lookup targetTranslation dict of
+          Nothing ->
+            let key = symbolVal $ Proxy @currentTranslation
+             in Left $ "missing translation: " <> key
+          Just _ -> do
+            (DictInstance m) <- validateDictInstance @rest dict
+            pure $ DictInstance m
 
-dictInstance :: ValidateDictInstance dict DictInstance => Map.Map String Translation -> Maybe (DictInstance dict)
+dictInstance :: ValidateDictInstance dict DictInstance => Map.Map String Translation -> Either String (DictInstance dict)
 dictInstance = validateDictInstance
 
 lookupTranslation ::
