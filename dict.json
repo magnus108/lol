@@ -1,5 +1,5 @@
 {
-    "red": "Rød",
-    "green": "Grøn",
-    "blue": "Blå"
+    "red": {"direct" : "Rød"},
+    "green": {"direct": "Grøn"},
+    "blue": {"same-as": "red"}
 }

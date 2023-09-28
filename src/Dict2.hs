@@ -82,7 +82,7 @@ instantiateDict EmptyDict = DictInstance Map.empty
 instantiateDict (AddDict translation mkDict') =
   let (DictInstance t) = instantiateDict mkDict'
       translationKey = translatableKey translation
-      translationVal = toTranslation translation
+      translationVal = SomeTranslation $ toTranslation translation
    in DictInstance $ Map.insert translationKey translationVal t
 
 sampleDict =
@@ -93,9 +93,9 @@ sampleDict =
           EmptyDict
 
 sampleLookup dict =
-  ( translation $ lookupTranslation @"red" dict,
-    translation $ lookupTranslation @"green" dict,
-    translation $ lookupTranslation @"blue" dict
+  ( lookupTranslation @"red" dict,
+    lookupTranslation @"green" dict,
+    lookupTranslation @"blue" dict
   )
 
 {-
@@ -115,11 +115,11 @@ myDict =
 lol = toTranslation (red myDict)
 -}
 
-newtype DictInstance (dict :: Dict) = DictInstance {getDictInstance :: Map.Map String Translation}
+newtype DictInstance (dict :: Dict) = DictInstance {getDictInstance :: Map.Map String SomeTranslation}
   deriving (Eq, Show)
 
 class ValidateDictInstance (dict :: Dict) (a :: Dict -> Type) where
-  validateDictInstance :: Map.Map String Translation -> Either String (a dict)
+  validateDictInstance :: Map.Map String SomeTranslation -> Either String (a dict)
 
 instance ValidateDictInstance '[] DictInstance where
   validateDictInstance dict = Right (DictInstance dict)
@@ -140,7 +140,7 @@ instance
             (DictInstance m) <- validateDictInstance @rest dict
             pure $ DictInstance m
 
-dictInstance :: ValidateDictInstance dict DictInstance => Map.Map String Translation -> Either String (DictInstance dict)
+dictInstance :: ValidateDictInstance dict DictInstance => Map.Map String SomeTranslation -> Either String (DictInstance dict)
 dictInstance = validateDictInstance
 
 lookupTranslation ::
@@ -149,7 +149,7 @@ lookupTranslation ::
     HasTranslation translationName dict
   ) =>
   DictInstance dict ->
-  Translation
+  SomeTranslation
 lookupTranslation (DictInstance translations) =
   let targetName = symbolVal $ Proxy @translationName
    in translations Map.! targetName
@@ -157,9 +157,9 @@ lookupTranslation (DictInstance translations) =
 demoDictInstance :: DictInstance ["red", "green", "blue"]
 demoDictInstance =
   DictInstance . Map.fromList $
-    [ ("red", Translation "Rød"),
-      ("green", Translation "Grøn"),
-      ("blue", Translation "Blå")
+    [ ("red", someTranslation "Rød"),
+      ("green", someTranslation "Grøn"),
+      ("blue", someTranslation "Blå")
     ]
 
 dictDemo ::
@@ -178,3 +178,17 @@ dictDemo dict =
 type DemoDict = '["red", "green", "blue"]
 
 type YellowDict = '["yellow"]
+
+data SomeTranslation = forall translation. TranslationTypeLevelToTranslation translation => SomeTranslation translation
+
+instance Show SomeTranslation where
+  show = show . toTranslation
+
+instance Eq SomeTranslation where
+  x == y = (toTranslation x) == (toTranslation y)
+
+someTranslation :: String -> SomeTranslation
+someTranslation translation = SomeTranslation $ Translation translation
+
+instance TranslationTypeLevelToTranslation SomeTranslation where
+  toTranslation (SomeTranslation translation) = toTranslation translation

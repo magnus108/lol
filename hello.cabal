@@ -22,6 +22,7 @@ library
                     , ColorX11
                     , Dict2
                     , Dict2Read
+                    , Variadic
                     , Color
     hs-source-dirs:   src
 
@@ -34,6 +35,7 @@ executable hello
         ColorX11,
         Dict2,
         Dict2Read,
+        Variadic,
         Color
 
 test-suite hello-test
@@ -43,6 +45,7 @@ test-suite hello-test
     other-modules:
         Hello.Color.Tests,
         TestSuite.Util,
+        Variadic,
         ColorTheme,
         ColorX11,
         Dict2,
